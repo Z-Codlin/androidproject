@@ -17,16 +17,24 @@ public class ChessBoardView extends View {
     private int startY = 0;
     private int GRID_WIDTH = -1;
     private int GRID_MOD = -1;
-    private int GRID_NUM = 8;
+    private int GRID_NUM = 7;//有问题
+    private static final int
     private Paint paint = null;
 
-    private int[][] chess = new int[GRID_NUM][GRID_NUM];
+    private int[][] mChessPieceState = new int[GRID_NUM][GRID_NUM];
+    private static final int INVALID_POS_STATE = -1;
+    private static final int EXIST_PIECE_STATE = 1;
+    private static final int EMPTY_PIECE_STATE = 0;
+    private static int mSelectedPieceX = -1;
+    private static int mSelectedPieceY = -1;
+
     private int CHESS_BLACK = 1;//表示棋子的颜色，1代表黑色，2代表白色，0达标没有棋子
     private int CHESS_WHITE = 2;
     private int chess_flag = 0;//用于记录上一次下的棋子的颜色，1为黑色，2为白色，0是刚开始下棋,上一次没下棋子
 
     public ChessBoardView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        initChessPieceState();
 
         DisplayMetrics dm = getResources().getDisplayMetrics();
         float width = dm.density * 300 + 0.5f;
@@ -79,15 +87,17 @@ public class ChessBoardView extends View {
         {
             for(int j=0;j<GRID_NUM;j++)
             {
-                //if(chess[i][j] == CHESS_BLACK)
-                //{
-                //    paint.setColor(Color.BLACK);//黑色画笔，画黑棋
-                //    canvas.drawCircle(startX+i*GRID_WIDTH+ GRID_WIDTH/2,startY+j*GRID_WIDTH+ GRID_WIDTH/2 ,GRID_WIDTH/2-3, paint);
-                //    Log.e("zhanchaolin-B",",Circle-X:"+(startX+i*GRID_WIDTH)+",Circle-Y:"+(startY+j*GRID_WIDTH));
-                //}
-                if(isValidCoordinate(i,j) && !isCenterPos(i,j))
+/*                if(isValidCoordinate(i,j) && !isCenterPos(i,j))
                 {
                     paint.setColor(Color.BLACK);//画笔，画棋子
+                    canvas.drawCircle(startX+i*GRID_WIDTH + GRID_WIDTH/2,startY+j*GRID_WIDTH+GRID_WIDTH/2 ,GRID_WIDTH/2-3, paint);
+                    Log.e("zhanchaolin-W",",Circle-X:"+(startX+i*GRID_WIDTH)+",Circle-Y:"+(startY+j*GRID_WIDTH));
+                } */
+                if (mChessPieceState[i][j] == EXIST_PIECE_STATE) {
+                    paint.setColor(Color.BLACK);//画笔，画棋子
+                    if (isSelectedPiece(i,j)) {
+                        paint.setColor(Color.BULE);//画笔，画棋子
+                    }
                     canvas.drawCircle(startX+i*GRID_WIDTH + GRID_WIDTH/2,startY+j*GRID_WIDTH+GRID_WIDTH/2 ,GRID_WIDTH/2-3, paint);
                     Log.e("zhanchaolin-W",",Circle-X:"+(startX+i*GRID_WIDTH)+",Circle-Y:"+(startY+j*GRID_WIDTH));
                 }
@@ -110,6 +120,69 @@ public class ChessBoardView extends View {
         return false;
     }
 
+    private boolean isSelectedPiece(int corX, int corY) {
+        if (corX == mSelectedPieceX && corY == mSelectedPieceY) {
+            return true;
+        }
+        return false;
+    }
+
+    private void setSelectedPiece(int corX, int corY) {
+        mSelectedPieceX = corX;
+        mSelectedPieceY = corY;
+    }
+
+    private boolean isExistPiece(int corX, int corY) {
+        if (mChessPieceState[corX][corY] == EXIST_PIECE_STATE) {
+            return true;
+        }
+        return false;
+    }
+    private boolean isEmptyPiece(int corX, int corY) {
+        if (mChessPieceState[corX][corY] == EMPTY_PIECE_STATE) {
+            return true;
+        }
+        return false;
+    }
+    private boolean isEndGame() {
+        for(int i=0;i<GRID_NUM;i++) {
+            for (int j = 0; j < GRID_NUM; j++) {
+                if (isExistPiece(i, j)) {
+                    if (i+2 < GRID_NUM && isExistPiece(i+1, j) && isEmptyPiece(i+2, j)){
+                        return false;
+                    }
+                    if(i-2 >= 0 && isExistPiece(i-1, j) && isEmptyPiece(i-2, j)){
+                        return false;
+                    }
+                    if(j+2 < GRID_NUM && isExistPiece(i, j+1) && isEmptyPiece(i, j+2)){
+                        return false;
+                    }
+                    if(j-2 >= 0 && isExistPiece(i, j-1) && isEmptyPiece(i, j-2)){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+
+    }
+
+    private void initChessPieceState() {
+        for(int i=0;i<GRID_NUM;i++) {
+            for (int j = 0; j < GRID_NUM; j++) {
+                if (isValidCoordinate(i,j)) {
+                    if (isCenterPos(i,j)) {
+                        mChessPieceState[i][j] = EMPTY_PIECE_STATE;
+                    } else {
+                        mChessPieceState[i][j] = EXIST_PIECE_STATE;
+                    }
+                } else {
+                    mChessPieceState[i][j] = INVALID_POS_STATE;
+                }
+            }
+        }
+    }
+
 
     //重写View的监听触摸事件的方法
     @Override
@@ -127,6 +200,27 @@ public class ChessBoardView extends View {
             //根据点击的位置，从而获知在棋盘上的哪个位置，即是数组的脚标
             int index_x = (int)((touchX-startX)/GRID_WIDTH);
             int index_y = (int)((touchY-startY)/GRID_WIDTH);
+            if (isExistPiece(index_x, index_y)) {
+                setSelectedPiece(index_x, index_y); //设置选中棋子光标
+            } else if (isEmptyPiece(index_x, index_y)) {
+                if (index_x == mSelectedPieceX && Math.abs(mSelectedPieceY - index_y) == 2) {
+                    int midcorY = mSelectedPieceY + (index_y - mSelectedPieceY)/2;
+                    if (isExistPiece(index_x, midcorY)){ //进入此条件，棋子开始移动
+                        mChessPieceState[index_x][midcorY] = EMPTY_PIECE_STATE; //下棋规则第一步，清除中间棋子
+                        mChessPieceState[mSelectedPieceX][mSelectedPieceY] = EMPTY_PIECE_STATE; //移动棋子
+                        mChessPieceState[index_x][index_y] = EXIST_PIECE_STATE;
+                        setSelectedPiece(index_x, index_y); //重新设置选中棋子光标
+                    }
+                } else if (index_y == mSelectedPieceY && Math.abs(mSelectedPieceX - index_x) == 2){
+                    int midcorX = mSelectedPieceX + (index_x - mSelectedPieceX)/2;
+                    if (isExistPiece(midcorX, index_y)){ //进入此条件，棋子开始移动
+                        mChessPieceState[index_x][midcorY] = EMPTY_PIECE_STATE; //下棋规则第一步，清除中间棋子
+                        mChessPieceState[mSelectedPieceX][mSelectedPieceY] = EMPTY_PIECE_STATE; //移动棋子
+                        mChessPieceState[index_x][index_y] = EXIST_PIECE_STATE;
+                        setSelectedPiece(index_x, index_y); //重新设置选中棋子光标
+                    }
+                }
+            }
             Log.e("zhanchaolin","index_x:"+index_x+",index_y:"+index_y+",touchX:"+touchX+",startX:"+startX+",GRID_WIDTH:"+GRID_WIDTH+",touchY:"+touchY+",startY:"+startY);
 
             if(chess_flag == 0)
