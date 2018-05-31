@@ -20,27 +20,27 @@
             android:hint="请输入您本局的id"
             android:textColor="#FFFF0000"/>
             <Button
-                android:id="@+id/button2"
+                android:id="@+id/btn_start"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:text="开始游戏" />
 
             <Button
-                android:id="@+id/button5"
+                android:id="@+id/btn_continue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:text="继续游戏" />
 
             <Button
-                android:id="@+id/button3"
+                android:id="@+id/btn_rate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:text="排行榜" />
 
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/btn_exit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:text="退出游戏" />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

@@ -27,6 +27,8 @@ public class ChessBoardView extends View {
     private Context mContext;
 
     private int[][] mChessPieceState = new int[GRID_NUM][GRID_NUM];
+    private ArrayList<ContentValues> mStepsItems = new ArrayList<ContentValues>();
+    private static int mStepNum = 0;
     private static final int INVALID_POS_STATE = -1;
     private static final int EXIST_PIECE_STATE = 1;
     private static final int EMPTY_PIECE_STATE = 0;
@@ -34,6 +36,8 @@ public class ChessBoardView extends View {
     private static int mSelectedPieceY = -1;
     private static final int MSG_END_GAME = 10;
     private static boolean mHasEndGame = false;
+    private static long mStartTime = 0;
+    private static long mEndTime = 0;
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -50,6 +54,7 @@ public class ChessBoardView extends View {
         super(context, attrs);
         initChessPieceState();
         mContext = context;
+        mStartTime = System.currentTimeMillis(); //开始计时
 
         DisplayMetrics dm = getResources().getDisplayMetrics();
         float width = dm.density * 300 + 0.5f;
@@ -115,6 +120,7 @@ public class ChessBoardView extends View {
         }
         if (isEndGame()) {
             mHasEndGame = true;
+            mEndTime = System.currentTimeMillis();//游戏结束，结束计时
             mHandler.sendEmptyMessageDelayed(MSG_END_GAME,500);
         }
     }
